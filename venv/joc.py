@@ -1,14 +1,11 @@
-
-from api import ServidorCodelearn
- 
+from api import ServidorCodelearn 
 import pygame
 import random
 import sys
 
 pygame.init()
 ServidorCodelearn = ServidorCodelearn()
-# Iniciem el servidor
-gameid = ServidorCodelearn.iniciar_partida()[1]
+gameid = ServidorCodelearn.iniciar_partida()
 # Configuració pantalla
 AMPLADA, ALCADA = 1580, 800
 pantalla = pygame.display.set_mode((AMPLADA, ALCADA))
@@ -477,7 +474,6 @@ def jugar():
                             feedback_temps = pygame.time.get_ticks()
                             idx_pregunta += 1
                             espera_resposta = False
-                            data:"Puntuació"
                         else:
                             vides -= 1
                             feedback = "Incorrecte!"
@@ -487,6 +483,10 @@ def jugar():
                             else:
                                 idx_pregunta += 1
                                 espera_resposta = False
+                        data = {"score": puntuacio, "lives": vides, "num_pregunta": idx_pregunta}
+                        resposta = ServidorCodelearn.guardar_progres(data)
+                        
+                        print(resposta)
                     else:
                         # Permetem només caràcters imprimibles
                         if event.unicode.isprintable():
@@ -530,6 +530,9 @@ def final_joc(vides_restants, puntuacio):
     final = True
     botons = {"Reiniciar": pygame.Rect(AMPLADA//2 - 150, 400, 140, 50),
               "Menú": pygame.Rect(AMPLADA//2 + 10, 400, 140, 50)}
+    data = {"PreguntesEncertades": puntuacio, "lives": vides_restants}
+    resposta = ServidorCodelearn.finalitzar_partida(data, puntuacio)
+    print (resposta)
 
     while final:
         fons_gradient()
