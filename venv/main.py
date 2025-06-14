@@ -1,219 +1,201 @@
+import pygame
 import random
-import time
+import sys
 
-class CodeQuest:
+# Inicializar Pygame
+pygame.init()
+
+# Configuración de pantalla
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Dungeon Adventure con Preguntas de Python")
+
+# Colores
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+GRAY = (200, 200, 200)
+
+# Fuentes
+font = pygame.font.SysFont(None, 36)
+large_font = pygame.font.SysFont(None, 48)
+
+# Reloj para FPS
+clock = pygame.time.Clock()
+
+# Clases
+class Player:
     def __init__(self):
-        self.vides = 3
-        self.masmorra_actual = 1
-        self.puntuacio = 0
-        self.nom_jugador = ""
-        
-        # Definim les masmorres amb els seus desafiaments
-        self.masmorres = {
-            1: {
-                "nom": "Masmorra de les Variables",
-                "descripcio": "Aprèn a crear i utilitzar variables!",
-                "desafiaments": [
-                    {
-                        "pregunta": "Com declares una variable 'nom' amb el valor 'Joan'?",
-                        "opcions": ["nom = 'Joan'", "var nom = 'Joan'", "nom := 'Joan'", "declara nom = 'Joan'"],
-                        "resposta_correcta": 0,
-                        "explicacio": "En Python, declarem variables simplement amb el nom seguit de '=' i el valor."
-                    },
-                    {
-                        "pregunta": "Què imprimirà: print(type(42))?",
-                        "opcions": ["<class 'str'>", "<class 'int'>", "<class 'float'>", "42"],
-                        "resposta_correcta": 1,
-                        "explicacio": "42 és un nombre enter, per això type() retorna <class 'int'>."
-                    }
-                ]
-            },
-            2: {
-                "nom": "Masmorra dels Bucles",
-                "descripcio": "Domina els bucles for i while!",
-                "desafiaments": [
-                    {
-                        "pregunta": "Com imprimeixes els números del 1 al 5?",
-                        "opcions": [
-                            "for i in range(1, 6): print(i)",
-                            "for i in range(1, 5): print(i)",
-                            "for i in range(5): print(i)",
-                            "while i <= 5: print(i)"
-                        ],
-                        "resposta_correcta": 0,
-                        "explicacio": "range(1, 6) genera números del 1 al 5 (el 6 no s'inclou)."
-                    },
-                    {
-                        "pregunta": "Què fa 'break' dins un bucle?",
-                        "opcions": [
-                            "Pausa el bucle temporalment",
-                            "Surt del bucle completament",
-                            "Reinicia el bucle",
-                            "No fa res"
-                        ],
-                        "resposta_correcta": 1,
-                        "explicacio": "'break' surt del bucle immediatament, sense continuar les iteracions."
-                    }
-                ]
-            },
-            3: {
-                "nom": "Masmorra de les Funcions",
-                "descripcio": "Crea les teves pròpies funcions!",
-                "desafiaments": [
-                    {
-                        "pregunta": "Com defineixes una funció que suma dos números?",
-                        "opcions": [
-                            "function suma(a, b): return a + b",
-                            "def suma(a, b): return a + b",
-                            "suma(a, b) = a + b",
-                            "create suma(a, b): return a + b"
-                        ],
-                        "resposta_correcta": 1,
-                        "explicacio": "En Python, utilitzem 'def' per definir funcions."
-                    },
-                    {
-                        "pregunta": "Què retorna una funció sense 'return'?",
-                        "opcions": ["0", "''", "None", "Error"],
-                        "resposta_correcta": 2,
-                        "explicacio": "Si una funció no té 'return', Python retorna automàticament 'None'."
-                    }
-                ]
-            }
-        }
-    
-    def mostrar_intro(self):
-        print("=" * 50)
-        print("🎮 BENVINGUT A CODE QUEST! 🎮")
-        print("=" * 50)
-        print("Un joc educatiu per aprendre Python!")
-        print("Tens 3 vides per completar totes les masmorres.")
-        print("Cada resposta correcta et dona 10 punts.")
-        print("Cada resposta incorrecta et fa perdre una vida.")
-        print("=" * 50)
-        
-        self.nom_jugador = input("Introdueix el teu nom: ").strip()
-        if not self.nom_jugador:
-            self.nom_jugador = "Aventurer"
-        
-        print(f"\nHola {self.nom_jugador}! Preparat per l'aventura? 🚀")
-        input("Prem Enter per començar...")
-    
-    def mostrar_estat(self):
-        print("\n" + "─" * 40)
-        print(f"👤 Jugador: {self.nom_jugador}")
-        print(f"❤️  Vides: {self.vides}")
-        print(f"🏰 Masmorra: {self.masmorra_actual}")
-        print(f"⭐ Puntuació: {self.puntuacio}")
-        print("─" * 40)
-    
-    def mostrar_masmorra(self, num_masmorra):
-        masmorra = self.masmorres[num_masmorra]
-        print(f"\n🏰 {masmorra['nom']} 🏰")
-        print(f"📝 {masmorra['descripcio']}")
-        print("═" * 30)
-    
-    def fer_pregunta(self, desafiament):
-        print(f"\n❓ {desafiament['pregunta']}")
-        print()
-        
-        for i, opcio in enumerate(desafiament['opcions']):
-            print(f"{i + 1}. {opcio}")
-        
-        while True:
-            try:
-                resposta = int(input("\nTrieu una opció (1-4): ")) - 1
-                if 0 <= resposta < len(desafiament['opcions']):
-                    break
+        self.width = 40
+        self.height = 60
+        self.x = WIDTH // 2
+        self.y = HEIGHT - self.height - 10
+        self.speed = 5
+        self.lives = 3
+        self.color = GREEN
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def move(self, dx):
+        self.x += dx * self.speed
+        self.x = max(0, min(WIDTH - self.width, self.x))
+        self.rect.topleft = (self.x, self.y)
+
+    def draw(self):
+        pygame.draw.rect(screen, self.color, self.rect)
+
+class Enemy:
+    def __init__(self):
+        self.width = 30
+        self.height = 30
+        self.x = random.randint(0, WIDTH - self.width)
+        self.y = -self.height
+        self.speed = random.randint(2, 4)
+        self.color = RED
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def update(self):
+        self.y += self.speed
+        self.rect.topleft = (self.x, self.y)
+
+    def draw(self):
+        pygame.draw.rect(screen, self.color, self.rect)
+
+# Función para mostrar texto en pantalla
+def draw_text(text, font, color, x, y):
+    surface = font.render(text, True, color)
+    screen.blit(surface, (x, y))
+
+# Preguntas de ejemplo
+questions = [
+    {
+        "question": "¿Cómo se escribe un ciclo for en Python?",
+        "answer": "for i in range(5):"
+    },
+    {
+        "question": "¿Cómo se define una función en Python?",
+        "answer": "def mi_funcion():"
+    },
+    {
+        "question": "¿Cómo se crea una lista en Python?",
+        "answer": "mi_lista = []"
+    }
+]
+
+# Función para obtener una pregunta aleatoria
+def get_random_question():
+    return random.choice(questions)
+
+# Variables de juego
+player = Player()
+enemies = []
+spawn_timer = 0
+spawn_interval = 90  # frames
+
+# Estado del juego
+game_over = False
+current_question = None
+player_input = ""
+show_question = False
+score = 0
+
+# Función para mostrar la pregunta y recibir respuesta
+def ask_question(question_data):
+    global show_question, player_input
+    show_question = True
+    player_input = ""
+    return question_data
+
+# Loop principal
+running = True
+while running:
+    clock.tick(60)
+    screen.fill(GRAY)
+
+    # Eventos
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if show_question:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    player_input = player_input[:-1]
+                elif event.key == pygame.K_RETURN:
+                    # Verificar respuesta
+                    correct_answer = current_question['answer'].strip()
+                    if player_input.strip() == correct_answer:
+                        score += 1
+                        # Eliminar enemigo si existe
+                        for enemy in enemies:
+                            if enemy.rect.colliderect(player.rect):
+                                enemies.remove(enemy)
+                                break
+                    else:
+                        player.lives -= 1
+                        if player.lives <= 0:
+                            game_over = True
+                    show_question = False
                 else:
-                    print("❌ Opció no vàlida. Tria entre 1 i 4.")
-            except ValueError:
-                print("❌ Introdueix un número vàlid.")
-        
-        if resposta == desafiament['resposta_correcta']:
-            print("✅ Correcte!")
-            print(f"💡 {desafiament['explicacio']}")
-            self.puntuacio += 10
-            return True
-        else:
-            print("❌ Incorrecte!")
-            print(f"📚 Resposta correcta: {desafiament['opcions'][desafiament['resposta_correcta']]}")
-            print(f"💡 {desafiament['explicacio']}")
-            self.vides -= 1
-            return False
-    
-    def jugar_masmorra(self, num_masmorra):
-        self.mostrar_masmorra(num_masmorra)
-        masmorra = self.masmorres[num_masmorra]
-        
-        for i, desafiament in enumerate(masmorra['desafiaments']):
-            print(f"\n🎯 Desafiament {i + 1}/{len(masmorra['desafiaments'])}")
-            
-            if not self.fer_pregunta(desafiament):
-                if self.vides <= 0:
-                    return False
-                
-                print(f"\n💔 Et queden {self.vides} vides.")
-                input("Prem Enter per continuar...")
-            else:
-                time.sleep(1)
-        
-        print(f"\n🎉 Has completat la {masmorra['nom']}!")
-        return True
-    
-    def mostrar_final(self, victoria=True):
-        print("\n" + "=" * 50)
-        if victoria:
-            print("🏆 FELICITATS! HAS GUANYAT! 🏆")
-            print("Has completat totes les masmorres!")
-        else:
-            print("💀 GAME OVER 💀")
-            print("T'has quedat sense vides...")
-        
-        print(f"\n📊 PUNTUACIÓ FINAL:")
-        print(f"👤 Jugador: {self.nom_jugador}")
-        print(f"⭐ Puntuació: {self.puntuacio}")
-        print(f"🏰 Masmorres completades: {self.masmorra_actual - 1}")
-        print(f"❤️  Vides restants: {self.vides}")
-        
-        if victoria:
-            if self.puntuacio >= 50:
-                print("🌟 Ets un mestre de Python!")
-            elif self.puntuacio >= 30:
-                print("👍 Bon treball! Segueixes aprenent!")
-            else:
-                print("📚 Continua practicant!")
-        
-        print("=" * 50)
-    
-    def jugar(self):
-        self.mostrar_intro()
-        
-        while self.vides > 0 and self.masmorra_actual <= len(self.masmorres):
-            self.mostrar_estat()
-            
-            if not self.jugar_masmorra(self.masmorra_actual):
-                break
-            
-            self.masmorra_actual += 1
-            
-            if self.masmorra_actual <= len(self.masmorres):
-                print(f"\n🚪 Preparant-te per la següent masmorra...")
-                time.sleep(2)
-        
-        # Determinar si ha guanyat
-        victoria = self.masmorra_actual > len(self.masmorres) and self.vides > 0
-        self.mostrar_final(victoria)
+                    player_input += event.unicode
 
-# Funció principal
-def main():
-    while True:
-        joc = CodeQuest()
-        joc.jugar()
-        
-        rejogar = input("\nVols tornar a jugar? (s/n): ").lower().strip()
-        if rejogar not in ['s', 'sí', 'si', 'yes', 'y']:
-            print("Gràcies per jugar a Code Quest! 👋")
-            break
+    keys = pygame.key.get_pressed()
+    if not show_question and not game_over:
+        if keys[pygame.K_LEFT]:
+            player.move(-1)
+        if keys[pygame.K_RIGHT]:
+            player.move(1)
 
-if __name__ == "__main__":
-    main()
+    # Spawnear enemigos
+    if not show_question and not game_over:
+        spawn_timer += 1
+        if spawn_timer >= spawn_interval:
+            spawn_timer = 0
+            enemies.append(Enemy())
+
+    # Actualizar enemigos
+    if not show_question and not game_over:
+        for enemy in enemies:
+            enemy.update()
+            if enemy.rect.colliderect(player.rect):
+                # Cuando un enemigo toca al jugador, hacerle una pregunta
+                current_question = ask_question(get_random_question())
+                enemies.remove(enemy)
+            elif enemy.y > HEIGHT:
+                enemies.remove(enemy)
+
+    # Dibujar todo
+    if not game_over:
+        player.draw()
+
+        for enemy in enemies:
+            enemy.draw()
+
+        # Mostrar vidas
+        draw_text(f"Vidas: {player.lives}", font, BLACK, 10, 10)
+        # Mostrar puntuación
+        draw_text(f"Puntaje: {score}", font, BLACK, 10, 50)
+
+        # Mostrar pregunta si es momento
+        if show_question:
+            # Dibujar cuadro de pregunta
+            question_box = pygame.Rect(50, 150, WIDTH - 100, 200)
+            pygame.draw.rect(screen, WHITE, question_box)
+            pygame.draw.rect(screen, BLACK, question_box, 2)
+
+            # Mostrar la pregunta
+            draw_text("Respuesta:", font, BLACK, question_box.x + 10, question_box.y + 10)
+            draw_text(current_question['question'], font, BLACK, question_box.x + 10, question_box.y + 50)
+
+            # Mostrar la respuesta del jugador
+            draw_text("Respuesta: " + player_input, font, BLACK, question_box.x + 10, question_box.y + 100)
+
+    else:
+        # Fin del juego
+        draw_text("Juego Terminado", large_font, RED, WIDTH // 2 - 150, HEIGHT // 2 - 50)
+        draw_text(f"Tu puntaje: {score}", font, BLACK, WIDTH // 2 - 80, HEIGHT // 2 + 10)
+
+    pygame.display.flip()
+
+pygame.quit()
+sys.exit()
